@@ -1,5 +1,5 @@
 import json
-from datetime import datetime
+from datetime import datetime, timedelta
 import requests
 from flask_expects_json import expects_json
 from flask import request, jsonify
@@ -38,7 +38,7 @@ def trade(symbol):
         # when selling, amount is substracted
         op = Operation(symbol=symbol, shares=amount, value=float(
             json_response['data']['primaryData']['lastSalePrice'][1:]),
-            type=OperationTypeEnum.buy, date=datetime.now())
+            type=OperationTypeEnum.buy, date=datetime.now())  # -timedelta(days=1) for testing purposes...
         op.update_or_create()
     else:
         op = Operation(symbol=symbol, shares=amount, value=float(
@@ -67,12 +67,16 @@ def trade(symbol):
         diference = percent - 100  # difference results in 20% which is a profit
         db_stock.profit_percent = diference
         db_stock.value = db_stock.shares * op.value
+        db_stock.price_min = Operation.get_min_today(symbol)
+        db_stock.price_max = Operation.get_max_today(symbol)
+        db_stock.price_ave = Operation.get_ave_today(symbol)
         db_stock.update_or_create()
         return stock_schema.dump(db_stock)
     else:
         # new stock. create it!
         new_stock = Stock(symbol=symbol, shares=amount, value=amount*float(
-            json_response['data']['primaryData']['lastSalePrice'][1:]), profit_percent=0)
+            json_response['data']['primaryData']['lastSalePrice'][1:]), profit_percent=0,
+            price_min=0, price_max=0, price_ave=0)
         new_stock.update_or_create()
         return stock_schema.dump(new_stock)
 
@@ -90,3 +94,10 @@ def get_stocks():
 def get_operations():
     operations = Operation.query.all()
     return {'operations': operations_schema.dump(operations)}
+
+
+@app.route('/history/<symbol>')
+def get_history(symbol):
+    return {'max': Operation.get_max_today(symbol),
+            'min': Operation.get_min_today(symbol),
+            'ave': Operation.get_ave_today(symbol)}

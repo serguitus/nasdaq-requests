@@ -1,4 +1,5 @@
 import enum
+from datetime import date
 
 from app import db
 
@@ -27,7 +28,6 @@ class Stock(db.Model):
         db.session.commit()
 
     def total_held(self):
-        print('retenido: {}'.format(self.shares * self.value))
         return self.shares * self.value
 
 
@@ -58,7 +58,6 @@ class Operation(db.Model):
             symbol=symbol, type=OperationTypeEnum.buy).all()
         for op in ops:
             total += (op.shares * op.value)
-        print('comprado: {}'.format(total))
         return total
 
     @classmethod
@@ -69,5 +68,34 @@ class Operation(db.Model):
             symbol=symbol, type=OperationTypeEnum.sell).all()
         for op in ops:
             total += (op.shares * op.value)
-        print('vendido: {}'.format(total))
         return total
+
+    @classmethod
+    def get_max_today(cls, symbol):
+        ops = cls.query.filter(cls.symbol == symbol, cls.date >= date.today())
+        max = 0
+        for op in ops:
+            if op.value > max:
+                max = op.value
+        return max
+
+    @classmethod
+    def get_min_today(cls, symbol):
+        ops = cls.query.filter(cls.symbol == symbol, cls.date >= date.today())
+        if not ops.count():
+            return 0
+        min = ops.first().value
+        for op in ops:
+            if op.value < min:
+                min = op.value
+        return min
+
+    @classmethod
+    def get_ave_today(cls, symbol):
+        ops = cls.query.filter(cls.symbol == symbol, cls.date >= date.today())
+        if not ops.count():
+            return 0
+        ave = 0
+        for op in ops:
+            ave += op.value
+        return ave / ops.count()
