@@ -1,5 +1,5 @@
 from app import ma
-from app.models import Stock
+from app.models import Stock, Operation
 
 
 class StockSchema(ma.Schema):
@@ -11,3 +11,14 @@ class StockSchema(ma.Schema):
 
 stock_schema = StockSchema()
 stocks_schema = StockSchema(many=True)
+
+
+class OperationSchema(ma.Schema):
+    class Meta:
+        fields = ("id", "symbol", "shares", "value",
+                  "date")
+        model = Operation
+
+
+operation_schema = OperationSchema()
+operations_schema = OperationSchema(many=True)
