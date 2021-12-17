@@ -16,3 +16,7 @@ class Stock(db.Model):
 
     def __repr__(self):
         return '<Stock %r>' % self.symbol
+
+    def update_or_create(self):
+        db.session.add(self)
+        db.session.commit()
