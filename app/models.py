@@ -1,5 +1,7 @@
 import enum
 from datetime import date
+import pandas as pd
+
 
 from app import db
 
@@ -99,3 +101,20 @@ class Operation(db.Model):
         for op in ops:
             ave += op.value
         return ave / ops.count()
+
+    @classmethod
+    def get_history(cls, symbol):
+        ops = cls.query.filter_by(symbol=symbol).all()
+        data = {'datetime': [], 'value': []}
+        for op in ops:
+            data['datetime'].append(op.date)
+            data['value'].append(op.value)
+        # print(data)
+        df = pd.DataFrame(data, columns=['datetime', 'value'])
+        # print(df)
+        df['datetime'] = pd.to_datetime(df['datetime'])
+        df.index = df['datetime']
+        del df['datetime']
+        interpolate = df.resample('H').mean()
+        interpolate['value'] = interpolate['value'].interpolate()
+        return interpolate.to_json(date_format='iso')

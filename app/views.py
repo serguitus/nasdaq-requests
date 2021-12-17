@@ -3,7 +3,6 @@ from datetime import datetime, timedelta
 import requests
 from flask_expects_json import expects_json
 from flask import request, jsonify
-
 from . import app, db
 from app.models import Stock, Operation, OperationTypeEnum
 from app.schema import stocks_schema, stock_schema, operations_schema
@@ -97,7 +96,7 @@ def get_operations():
 
 
 @app.route('/history/<symbol>')
-def get_history(symbol):
-    return {'max': Operation.get_max_today(symbol),
-            'min': Operation.get_min_today(symbol),
-            'ave': Operation.get_ave_today(symbol)}
+def history(symbol):
+    operations = Operation.get_history(symbol)
+    print(operations)
+    return operations
