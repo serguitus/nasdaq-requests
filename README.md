@@ -51,3 +51,15 @@ Example Response
     ]
 }
 ```
+## Get History
+a GET request to /history/<symbol> will give you historical data
+
+Example Response
+```
+{
+    "value":{
+        "2021-12-17T03:00:00.000Z":3377.42,
+        "2021-12-17T04:00:00.000Z":3377.42
+    }
+}
+```
